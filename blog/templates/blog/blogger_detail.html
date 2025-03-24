@@ -1,0 +1,75 @@
+{% extends "blog/base.html" %}
+
+{% block title %}{{ blogger.user.username }}'s Profile{% endblock %}
+
+{% block content %}
+<div class="card blog-card mb-4">
+    <div class="card-body text-center">
+        <div class="mb-3">
+            {% if blogger.profile_picture %}
+                <img src="{{ blogger.profile_picture.url }}" alt="{{ blogger.user.username }}'s profile picture" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+            {% else %}
+                <i class="fas fa-user-circle fa-4x text-primary"></i>
+            {% endif %}
+        </div>
+        <h1 class="card-title h2 mb-2">{{ blogger.user.username }}</h1>
+        {% if blogger.bio %}
+            <p class="text-muted mb-3">{{ blogger.bio }}</p>
+        {% endif %}
+        <p class="text-muted mb-3">
+            <i class="fas fa-blog me-1"></i>
+            {{ blogger.blog_set.count }} post{{ blogger.blog_set.count|pluralize }}
+        </p>
+        {% if user == blogger.user %}
+            <a href="{% url 'blogger-update' blogger.pk %}" class="btn btn-outline-primary">
+                <i class="fas fa-user-edit me-2"></i>Edit Profile
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if blogger.blog_set.all %}
+    {% for blog in blogger.blog_set.all %}
+        <div class="card blog-card mb-4">
+            <div class="card-body">
+                <h2 class="card-title h3 mb-2">
+                    <a href="{{ blog.get_absolute_url }}" class="text-decoration-none">{{ blog.title }}</a>
+                </h2>
+                <p class="text-muted mb-3">
+                    <i class="far fa-calendar-alt me-1"></i>
+                    {{ blog.post_date|date:"F d, Y" }}
+                </p>
+                <p class="card-text">{{ blog.content|truncatewords:50 }}</p>
+                <div class="d-flex align-items-center">
+                    <a href="{{ blog.get_absolute_url }}" class="btn btn-outline-primary">
+                        <i class="fas fa-readme me-2"></i>Read More
+                    </a>
+                    {% if user.is_authenticated and user.blogger == blog.author %}
+                        <div class="btn-group ms-2">
+                            <a href="{% url 'blog-update' blog.pk %}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit me-2"></i>Edit
+                            </a>
+                            <a href="{% url 'blog-delete' blog.pk %}" class="btn btn-outline-danger">
+                                <i class="fas fa-trash me-2"></i>Delete
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="card blog-card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+            <h3 class="text-muted">No blog posts yet</h3>
+            {% if user == blogger.user %}
+                <p class="text-muted mb-0">Start sharing your thoughts with the world!</p>
+                <a href="{% url 'blog-create' %}" class="btn btn-primary mt-3">
+                    <i class="fas fa-plus me-2"></i>Create New Post
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %} 

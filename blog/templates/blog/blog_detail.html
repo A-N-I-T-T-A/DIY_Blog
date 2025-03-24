@@ -1,0 +1,95 @@
+{% extends "blog/base.html" %}
+
+{% block title %}{{ blog.title }}{% endblock %}
+
+{% block content %}
+<div class="card blog-card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h1 class="card-title h2 mb-2">{{ blog.title }}</h1>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-user me-1"></i>
+                    <a href="{% url 'user-profile' blog.author.pk %}" class="text-decoration-none">{{ blog.author }}</a>
+                    <span class="mx-2">•</span>
+                    <i class="far fa-calendar-alt me-1"></i>
+                    {{ blog.post_date|date:"F d, Y" }}
+                </p>
+            </div>
+            {% if user.is_authenticated and user.blogger == blog.author %}
+                <div class="btn-group">
+                    <a href="{% url 'blog-update' blog.pk %}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Edit
+                    </a>
+                    <a href="{% url 'blog-delete' blog.pk %}" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-2"></i>Delete
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="blog-content mb-4">
+            {{ blog.content|linebreaks }}
+        </div>
+
+        <div class="comments-section">
+            <h3 class="h4 mb-3">
+                <i class="fas fa-comments me-2"></i>Comments
+            </h3>
+
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'comment-create' blog.pk %}" class="mb-4">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <textarea name="text" class="form-control" rows="3" placeholder="Write your comment here..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">
+                        <i class="fas fa-paper-plane me-2"></i>Post Comment
+                    </button>
+                </form>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Please <a href="{% url 'login' %}" class="alert-link">log in</a> to leave a comment.
+                </div>
+            {% endif %}
+
+            {% if blog.comment_set.all %}
+                {% for comment in blog.comment_set.all %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title mb-1">
+                                        <i class="fas fa-user-circle me-2"></i>{{ comment.author }}
+                                    </h5>
+                                    <p class="text-muted small mb-2">
+                                        <i class="far fa-clock me-1"></i>
+                                        {{ comment.post_date|date:"F d, Y H:i" }}
+                                    </p>
+                                    <p class="card-text mb-0">{{ comment.text|linebreaks }}</p>
+                                </div>
+                                {% if user == comment.author %}
+                                    <div class="btn-group">
+                                        <a href="{% url 'comment-update' comment.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'comment-delete' comment.pk %}" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-comment-slash fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No comments yet. Be the first to comment!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 
